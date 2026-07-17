@@ -15,3 +15,10 @@ Log in as 001 / QBD@1234, then upload a file and view/download it back — that 
 If you haven't run the powercfg block yet, do that now too — otherwise the first time someone closes this laptop's lid, everyone loses access without warning.
 
 Paste back what happens on the second-laptop test.
+
+Get-Service TCMS, MinIO, postgresql-x64-16 | Select-Object Name, Status, StartType
+
+If any show Manual instead of Automatic, fix it:
+Set-Service -Name TCMS -StartupType Automatic
+Set-Service -Name MinIO -StartupType Automatic
+Set-Service -Name postgresql-x64-16 -StartupType Automatic
