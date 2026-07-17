@@ -1,12 +1,11 @@
-nssm stop TCMS
-cd C:\Users\Administrator\Desktop\tcms-qbd-main
-npm run build
+# Computer name
+$env:COMPUTERNAME
 
-Watch that output closely — confirm it ends with ✓ Compiled successfully and no ESLint/TypeScript errors (this is the same build we already fixed the .eslintrc.json/next.config.mjs issues for, so it should go clean this time). Then:
+# Is it domain-joined, and to what domain?
+Get-WmiObject Win32_ComputerSystem | Select-Object Name, Domain, PartOfDomain
 
-nssm start TCMS
-Start-Sleep -Seconds 5
-Get-Service TCMS
-Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log" -Tail 15
+# Full DNS/FQDN name
+[System.Net.Dns]::GetHostByName($env:COMPUTERNAME).HostName
 
-Paste back the build output and the final service status.
+# IP address(es)
+ipconfig | findstr /i "IPv4"
