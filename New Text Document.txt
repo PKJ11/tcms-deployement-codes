@@ -1,27 +1,12 @@
-PS C:\Users\Administrator> Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log" -Tail 30
-Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
-    at setupFsCheck (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-utils\filesystem.js:151:19)
-    at async initialize (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-server.js:64:23)
-    at async Server.<anonymous> (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\start-server.js:249:36)
-npm notice
-npm notice New major version of npm available! 11.16.0 -> 12.0.1
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
-npm notice To update run: npm install -g npm@12.0.1
-npm notice
-Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
-    at setupFsCheck (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-utils\filesystem.js:151:19)
-    at async initialize (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-server.js:64:23)
-    at async Server.<anonymous> (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\start-server.js:249:36)
-Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
-    at setupFsCheck (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-utils\filesystem.js:151:19)
-    at async initialize (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-server.js:64:23)
-    at async Server.<anonymous> (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\start-server.js:249:36)
-Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
-    at setupFsCheck (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-utils\filesystem.js:151:19)
-    at async initialize (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-server.js:64:23)
-    at async Server.<anonymous> (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\start-server.js:249:36)
-Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
-    at setupFsCheck (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-utils\filesystem.js:151:19)
-    at async initialize (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\router-server.js:64:23)
-    at async Server.<anonymous> (C:\Users\Administrator\Desktop\tcms-qbd-main\node_modules\next\dist\server\lib\start-server.js:249:36)
-PS C:\Users\Administrator>
+nssm stop TCMS
+cd C:\Users\Administrator\Desktop\tcms-qbd-main
+npm run build
+
+Watch that output closely — confirm it ends with ✓ Compiled successfully and no ESLint/TypeScript errors (this is the same build we already fixed the .eslintrc.json/next.config.mjs issues for, so it should go clean this time). Then:
+
+nssm start TCMS
+Start-Sleep -Seconds 5
+Get-Service TCMS
+Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log" -Tail 15
+
+Paste back the build output and the final service status.
