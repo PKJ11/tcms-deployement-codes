@@ -222,3 +222,10 @@ MINIO_API_PORT=9000
 MINIO_CONSOLE_PORT=9001
 
 
+Get-EventLog -LogName Application -Source nssm -Newest 5 | Format-List TimeGenerated, Message
+
+and, if that log file exists by now:
+Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log" -Tail 30
+
+
+
