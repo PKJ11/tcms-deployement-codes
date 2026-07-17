@@ -1,11 +1,24 @@
-# Computer name
-$env:COMPUTERNAME
+PS C:\Users\Administrator> $env:COMPUTERNAME
+QBD-LP-06
+PS C:\Users\Administrator>
+>> Get-WmiObject Win32_ComputerSystem | Select-Object Name, Domain, PartOfDomain^C
+PS C:\Users\Administrator> Get-WmiObject Win32_ComputerSystem | Select-Object Name, Domain, PartOfDomai^C
+PS C:\Users\Administrator> Get-WmiObject Win32_ComputerSystem | Select-Object Name, Domain, PartOfDomain
 
-# Is it domain-joined, and to what domain?
-Get-WmiObject Win32_ComputerSystem | Select-Object Name, Domain, PartOfDomain
+Name      Domain      PartOfDomain
+----      ------      ------------
+QBD-LP-06 qbdlab3.com         True
 
-# Full DNS/FQDN name
-[System.Net.Dns]::GetHostByName($env:COMPUTERNAME).HostName
 
-# IP address(es)
-ipconfig | findstr /i "IPv4"
+PS C:\Users\Administrator> System.Net.Dns]::GetHostByName($env:COMPUTERNAME).HostName
+System.Net.Dns]::GetHostByName : The term 'System.Net.Dns]::GetHostByName' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the
+name, or if a path was included, verify that the path is correct and try again.
+At line:1 char:1
++ System.Net.Dns]::GetHostByName($env:COMPUTERNAME).HostName
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (System.Net.Dns]::GetHostByName:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+PS C:\Users\Administrator> ipconfig | findstr /i "IPv4"
+   IPv4 Address. . . . . . . . . . . : 192.168.1.167
+PS C:\Users\Administrator>
