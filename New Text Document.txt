@@ -42,3 +42,60 @@ And make sure it's always on AC power, not running off battery — a laptop batt
 The bigger question underneath this
 
 This machine is literally named QBD-LP-06 — this really does look like a laptop, not a dedicated server. The settings above will make it behave like a server (no sleep, no lid-close shutdown), but it's still missing things a real server has: no redundant power, a battery that degrades faster under constant load, no server-grade cooling for 24/7 uptime, and a screen/keyboard someone could accidentally bump or a cleaner could unplug. If this is meant to be a genuinely reliable, always-on system for the whole company, it's worth flagging to your client whether this laptop is really the intended long-term host, or a temporary stand-in until real server hardware (like the QBDSER09 spec from the start of this conversation) is available.
+
+
+PS C:\Users\Administrator> New-NetFirewallRule -DisplayName "TCMS App" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
+
+
+Name                          : {78f8a649-e23e-446d-9803-2bbdd02e9255}
+DisplayName                   : TCMS App
+Description                   :
+DisplayGroup                  :
+Group                         :
+Enabled                       : True
+Profile                       : Any
+Platform                      : {}
+Direction                     : Inbound
+Action                        : Allow
+EdgeTraversalPolicy           : Block
+LooseSourceMapping            : False
+LocalOnlyMapping              : False
+Owner                         :
+PrimaryStatus                 : OK
+Status                        : The rule was parsed successfully from the store. (65536)
+EnforcementStatus             : NotApplicable
+PolicyStoreSource             : PersistentStore
+PolicyStoreSourceType         : Local
+RemoteDynamicKeywordAddresses :
+PolicyAppId                   :
+
+
+
+PS C:\Users\Administrator> New-NetFirewallRule -DisplayName "MinIO API" -Direction Inbound -LocalPort 9000 -Protocol TCP -Action Allow
+
+
+Name                          : {20355186-61df-43b2-8565-5e5ec53aaf32}
+DisplayName                   : MinIO API
+Description                   :
+DisplayGroup                  :
+Group                         :
+Enabled                       : True
+Profile                       : Any
+Platform                      : {}
+Direction                     : Inbound
+Action                        : Allow
+EdgeTraversalPolicy           : Block
+LooseSourceMapping            : False
+LocalOnlyMapping              : False
+Owner                         :
+PrimaryStatus                 : OK
+Status                        : The rule was parsed successfully from the store. (65536)
+EnforcementStatus             : NotApplicable
+PolicyStoreSource             : PersistentStore
+PolicyStoreSourceType         : Local
+RemoteDynamicKeywordAddresses :
+PolicyAppId                   :
+
+
+
+PS C:\Users\Administrator>
