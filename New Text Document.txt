@@ -1,29 +1,27 @@
-PS C:\Users\Administrator> Get-EventLog -LogName Application -Source nssm -Newest 5 | Format-List TimeGenerated, Message
+The event log still says Program C:\Program Files\nodejs\node.exe for service TCMS — that means the reinstall to cmd.exe never actually happened, this is still the original broken config. And the log file is missing because the logs folder doesn't exist yet (NSSM won't create missing directories). Let's do this in order, precisely:
 
+# 1. create the logs folder first — NSSM won't create it for you
+New-Item -ItemType Directory -Force -Path "C:\Users\Administrator\Desktop\tcms-qbd-main\logs"
 
-TimeGenerated : 17-Jul-26 16:40:20
-Message       : Service TCMS ran for less than 1500 milliseconds.
-                Restart will be delayed by 128000 milliseconds.
+# 2. fully remove the broken service
+nssm stop TCMS
+nssm remove TCMS confirm
 
-TimeGenerated : 17-Jul-26 16:40:20
-Message       : Service TCMS action for exit code 1 is Restart.
-                Attempting to restart C:\Program Files\nodejs\node.exe.
+# 3. reinstall pointed at cmd.exe, not node.exe directly
+nssm install TCMS "C:\Windows\System32\cmd.exe" "/c npm start"
+nssm set TCMS AppDirectory "C:\Users\Administrator\Desktop\tcms-qbd-main"
+nssm set TCMS AppEnvironmentExtra NODE_ENV=production
+nssm set TCMS AppExit Default Restart
+nssm set TCMS AppRestartDelay 5000
+nssm set TCMS AppStdout "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-out.log"
+nssm set TCMS AppStderr "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log"
 
-TimeGenerated : 17-Jul-26 16:40:20
-Message       : Killing PID 26008 in process tree of PID 26008 because service TCMS is stopping.
+# 4. start and check
+nssm start TCMS
+Start-Sleep -Seconds 5
+Get-Service TCMS
 
-TimeGenerated : 17-Jul-26 16:40:20
-Message       : Killing process tree of process 26008 for service TCMS with exit code 1
+Then, regardless of whether it's now Running or Paused again:
+Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log" -Tail 30
 
-TimeGenerated : 17-Jul-26 16:40:20
-Message       : Program C:\Program Files\nodejs\node.exe for service TCMS exited with return code 1.
-
-
-
-PS C:\Users\Administrator> Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log" -Tail 30
-Get-Content : Cannot find path 'C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-err.log' because it does not exist.
-At line:1 char:1
-+ Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\logs\tcms-e ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : ObjectNotFound: (C:\Users\Admini...gs\tcms-err.log:String) [Get-Content], ItemNotFoundException
-    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+Paste back the Get-Service TCMS result and that log tail — if cmd.exe /c npm start still fails, the log will finally show us Node/Next's actual error message instead of just "exited with code 1."
