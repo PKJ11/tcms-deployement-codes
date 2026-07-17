@@ -1,101 +1,17 @@
-1. Make it reachable for every laptop on this Wi-Fi
+1. Confirm .env actually has the IP values and restart
 
-Since this network is 192.168.1.0/24 (a normal router-issued range) and not every laptop that connects to this Wi-Fi is guaranteed to be domain-joined the way this machine is, the most reliable address to use is the IP directly, not the FQDN:
-
-NEXTAUTH_URL="http://192.168.1.167:3000"
-MINIO_ENDPOINT=http://192.168.1.167:9000
+Get-Content "C:\Users\Administrator\Desktop\tcms-qbd-main\.env" | Select-String "NEXTAUTH_URL|MINIO_ENDPOINT"
+Should show 192.168.1.167 in both. If it does:
 nssm restart TCMS
+Get-Service TCMS
 
-Firewall (if not already done):
-New-NetFirewallRule -DisplayName "TCMS App" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "MinIO API" -Direction Inbound -LocalPort 9000 -Protocol TCP -Action Allow
+2. Test from a second laptop on the same Wi-Fi
 
-Any laptop connected to that same Wi-Fi can then reach http://192.168.1.167:3000.
+http://192.168.1.167:3000
+Log in as 001 / QBD@1234, then upload a file and view/download it back — that last step is what actually proves MinIO is reachable, not just the login page.
 
-Important: that IP was handed out by DHCP, which means the router can reassign it later (after a reboot, a lease renewal, etc.) — if it changes, every laptop's saved link breaks. Fix it at the router (log into 192.168.1.1, find DHCP reservation settings, pin QBD-LP-06's MAC address to 192.168.1.167 permanently) if you have access to it. If you don't have router access, this is worth getting from whoever does — otherwise the address is only stable until the next lease renewal.
+3. Don't skip the power settings from last message
 
-2. Closing the lid — this is the more important question
+If you haven't run the powercfg block yet, do that now too — otherwise the first time someone closes this laptop's lid, everyone loses access without warning.
 
-As configured right now: yes, closing the lid will take the whole system down for every laptop using it. Windows' default lid-close action is to sleep, which pauses Postgres, MinIO, and the app — nobody can reach it until someone physically opens this laptop back up. This needs fixing before anyone relies on this.
-
-Force it to stay fully awake regardless of lid state or idle time:
-
-# never sleep, on AC or battery
-powercfg /change standby-timeout-ac 0
-powercfg /change standby-timeout-dc 0
-powercfg /change hibernate-timeout-ac 0
-powercfg /change hibernate-timeout-dc 0
-
-# closing the lid does nothing (on AC and on battery)
-powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
-powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
-powercfg /setactive SCHEME_CURRENT
-(Same setting is under Control Panel → Power Options → Choose what closing the lid does if you'd rather do it by hand — set "When I close the lid" to Do nothing, for both "On battery" and "Plugged in.")
-
-Also worth checking: the Wi-Fi adapter itself can be set to power down to save battery, which would silently drop connectivity even if the machine stays awake:
-Get-NetAdapter | Where-Object {$_.Name -like "*Wi-Fi*"} | ForEach-Object {
-    Disable-NetAdapterPowerManagement -Name $_.Name
-}
-
-And make sure it's always on AC power, not running off battery — a laptop battery isn't meant to power something continuously for weeks.
-
-The bigger question underneath this
-
-This machine is literally named QBD-LP-06 — this really does look like a laptop, not a dedicated server. The settings above will make it behave like a server (no sleep, no lid-close shutdown), but it's still missing things a real server has: no redundant power, a battery that degrades faster under constant load, no server-grade cooling for 24/7 uptime, and a screen/keyboard someone could accidentally bump or a cleaner could unplug. If this is meant to be a genuinely reliable, always-on system for the whole company, it's worth flagging to your client whether this laptop is really the intended long-term host, or a temporary stand-in until real server hardware (like the QBDSER09 spec from the start of this conversation) is available.
-
-
-PS C:\Users\Administrator> New-NetFirewallRule -DisplayName "TCMS App" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
-
-
-Name                          : {78f8a649-e23e-446d-9803-2bbdd02e9255}
-DisplayName                   : TCMS App
-Description                   :
-DisplayGroup                  :
-Group                         :
-Enabled                       : True
-Profile                       : Any
-Platform                      : {}
-Direction                     : Inbound
-Action                        : Allow
-EdgeTraversalPolicy           : Block
-LooseSourceMapping            : False
-LocalOnlyMapping              : False
-Owner                         :
-PrimaryStatus                 : OK
-Status                        : The rule was parsed successfully from the store. (65536)
-EnforcementStatus             : NotApplicable
-PolicyStoreSource             : PersistentStore
-PolicyStoreSourceType         : Local
-RemoteDynamicKeywordAddresses :
-PolicyAppId                   :
-
-
-
-PS C:\Users\Administrator> New-NetFirewallRule -DisplayName "MinIO API" -Direction Inbound -LocalPort 9000 -Protocol TCP -Action Allow
-
-
-Name                          : {20355186-61df-43b2-8565-5e5ec53aaf32}
-DisplayName                   : MinIO API
-Description                   :
-DisplayGroup                  :
-Group                         :
-Enabled                       : True
-Profile                       : Any
-Platform                      : {}
-Direction                     : Inbound
-Action                        : Allow
-EdgeTraversalPolicy           : Block
-LooseSourceMapping            : False
-LocalOnlyMapping              : False
-Owner                         :
-PrimaryStatus                 : OK
-Status                        : The rule was parsed successfully from the store. (65536)
-EnforcementStatus             : NotApplicable
-PolicyStoreSource             : PersistentStore
-PolicyStoreSourceType         : Local
-RemoteDynamicKeywordAddresses :
-PolicyAppId                   :
-
-
-
-PS C:\Users\Administrator>
+Paste back what happens on the second-laptop test.
