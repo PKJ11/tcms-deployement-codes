@@ -1,27 +1,44 @@
-PS C:\Users\Administrator> IPCONFIG
+1. Make it reachable for every laptop on this Wi-Fi
 
-Windows IP Configuration
+Since this network is 192.168.1.0/24 (a normal router-issued range) and not every laptop that connects to this Wi-Fi is guaranteed to be domain-joined the way this machine is, the most reliable address to use is the IP directly, not the FQDN:
 
+NEXTAUTH_URL="http://192.168.1.167:3000"
+MINIO_ENDPOINT=http://192.168.1.167:9000
+nssm restart TCMS
 
-Ethernet adapter Ethernet:
+Firewall (if not already done):
+New-NetFirewallRule -DisplayName "TCMS App" -Direction Inbound -LocalPort 3000 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "MinIO API" -Direction Inbound -LocalPort 9000 -Protocol TCP -Action Allow
 
-   Media State . . . . . . . . . . . : Media disconnected
-   Connection-specific DNS Suffix  . :
+Any laptop connected to that same Wi-Fi can then reach http://192.168.1.167:3000.
 
-Wireless LAN adapter Local Area Connection* 1:
+Important: that IP was handed out by DHCP, which means the router can reassign it later (after a reboot, a lease renewal, etc.) — if it changes, every laptop's saved link breaks. Fix it at the router (log into 192.168.1.1, find DHCP reservation settings, pin QBD-LP-06's MAC address to 192.168.1.167 permanently) if you have access to it. If you don't have router access, this is worth getting from whoever does — otherwise the address is only stable until the next lease renewal.
 
-   Media State . . . . . . . . . . . : Media disconnected
-   Connection-specific DNS Suffix  . :
+2. Closing the lid — this is the more important question
 
-Wireless LAN adapter Local Area Connection* 2:
+As configured right now: yes, closing the lid will take the whole system down for every laptop using it. Windows' default lid-close action is to sleep, which pauses Postgres, MinIO, and the app — nobody can reach it until someone physically opens this laptop back up. This needs fixing before anyone relies on this.
 
-   Media State . . . . . . . . . . . : Media disconnected
-   Connection-specific DNS Suffix  . :
+Force it to stay fully awake regardless of lid state or idle time:
 
-Wireless LAN adapter Wi-Fi:
+# never sleep, on AC or battery
+powercfg /change standby-timeout-ac 0
+powercfg /change standby-timeout-dc 0
+powercfg /change hibernate-timeout-ac 0
+powercfg /change hibernate-timeout-dc 0
 
-   Connection-specific DNS Suffix  . :
-   Link-local IPv6 Address . . . . . : fe80::7574:c907:5e23:fb87%18
-   IPv4 Address. . . . . . . . . . . : 192.168.1.167
-   Subnet Mask . . . . . . . . . . . : 255.255.255.0
-   Default Gateway . . . . . . . . . : 192.168.1.1
+# closing the lid does nothing (on AC and on battery)
+powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+powercfg /setactive SCHEME_CURRENT
+(Same setting is under Control Panel → Power Options → Choose what closing the lid does if you'd rather do it by hand — set "When I close the lid" to Do nothing, for both "On battery" and "Plugged in.")
+
+Also worth checking: the Wi-Fi adapter itself can be set to power down to save battery, which would silently drop connectivity even if the machine stays awake:
+Get-NetAdapter | Where-Object {$_.Name -like "*Wi-Fi*"} | ForEach-Object {
+    Disable-NetAdapterPowerManagement -Name $_.Name
+}
+
+And make sure it's always on AC power, not running off battery — a laptop battery isn't meant to power something continuously for weeks.
+
+The bigger question underneath this
+
+This machine is literally named QBD-LP-06 — this really does look like a laptop, not a dedicated server. The settings above will make it behave like a server (no sleep, no lid-close shutdown), but it's still missing things a real server has: no redundant power, a battery that degrades faster under constant load, no server-grade cooling for 24/7 uptime, and a screen/keyboard someone could accidentally bump or a cleaner could unplug. If this is meant to be a genuinely reliable, always-on system for the whole company, it's worth flagging to your client whether this laptop is really the intended long-term host, or a temporary stand-in until real server hardware (like the QBDSER09 spec from the start of this conversation) is available.
