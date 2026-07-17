@@ -161,3 +161,64 @@ nssm set TCMS AppRestartDelay 5000
 nssm start TCMS
 sc.exe config TCMS depend= MinIO
 
+# Environment variables declared in this file are NOT automatically loaded by Prisma.
+# Please add `import "dotenv/config";` to your `prisma.config.ts` file, or use the Prisma CLI with Bun
+# to load environment variables from .env files: https://pris.ly/prisma-config-env-vars.
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+# The following `prisma+postgres` URL is similar to the URL produced by running a local Prisma Postgres
+# server with the `prisma dev` CLI command, when not choosing any non-default ports or settings. The API key, unlike the
+# one found in a remote Prisma Postgres URL, does not contain any sensitive information.
+
+# temp password : af751f892f754200
+
+# DATABASE_URL="postgresql://neondb_owner:npg_LqzFo89QYNMi@ep-little-art-ad7c8168-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+# DATABASE_URL="postgresql://neondb_owner:npg_nS5ZRV3IYKEl@ep-cool-sun-atobbhin-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DATABASE_URL="postgresql://tcms_app:postgres@localhost:5432/tcms_prod"
+
+# ─── NextAuth ───────────────────────────────────────────
+NEXTAUTH_SECRET="FRWFFnfSLGdk6v/eQ80sGEWydww99my7xMV6DlMbtjw="
+NEXTAUTH_URL="http://localhost:3000"
+# ─── App ────────────────────────────────────────────────
+NEXT_PUBLIC_APP_NAME="TCMS"
+NEXT_PUBLIC_APP_VERSION="0.1.0"
+
+# ─── Email (nodemailer) ──────────────────────────────────
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+SMTP_FROM="noreply@tcms.internal"
+
+# ─── File storage ───────────────────────────────────────
+UPLOAD_DIR="./uploads"
+MAX_FILE_SIZE_MB="50"
+
+# ─── MinIO Credentials ───────────────────────────────────────────
+# These are like a username and password for your storage server
+# Change these to something secure before production
+
+MINIO_ROOT_USER=tcms_admin
+MINIO_ROOT_PASSWORD=Tcms@Storage2026
+
+# ─── MinIO Configuration ─────────────────────────────────────────
+MINIO_DEFAULT_BUCKETS=tcmsdocuments
+
+STORAGE_PROVIDER=minio
+MINIO_ENDPOINT=http://172.20.10.7:9000
+MINIO_ACCESS_KEY=tcms_admin
+MINIO_SECRET_KEY=Tcms@Storage2026
+MINIO_BUCKET=tcms-documents
+MINIO_REGION=us-east-1
+MINIO_PUBLIC_URL=http://172.20.10.7:9000
+
+# ─── Ports ───────────────────────────────────────────────────────
+# 9000 = S3 API port (your app talks to this)
+# 9001 = MinIO Console UI (browser dashboard)
+MINIO_API_PORT=9000
+MINIO_CONSOLE_PORT=9001
+
+
