@@ -151,3 +151,13 @@ Get-Service MinIO
 
 
 C:\Users\Administrator\Desktop\tcms-qbd-main>
+
+
+nssm install TCMS "C:\Program Files\nodejs\node.exe" node_modules\.bin\next start
+nssm set TCMS AppDirectory "C:\Users\Administrator\Desktop\tcms-qbd-main"
+nssm set TCMS AppEnvironmentExtra NODE_ENV=production
+nssm set TCMS AppExit Default Restart
+nssm set TCMS AppRestartDelay 5000
+nssm start TCMS
+sc.exe config TCMS depend= MinIO
+
