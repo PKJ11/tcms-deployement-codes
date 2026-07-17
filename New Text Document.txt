@@ -1,2 +1,27 @@
-NEXTAUTH_URL="http://QBD-LP-06.qbdlab3.com:3000"
-MINIO_ENDPOINT=http://QBD-LP-06.qbdlab3.com:9000
+PS C:\Users\Administrator> IPCONFIG
+
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet:
+
+   Media State . . . . . . . . . . . : Media disconnected
+   Connection-specific DNS Suffix  . :
+
+Wireless LAN adapter Local Area Connection* 1:
+
+   Media State . . . . . . . . . . . : Media disconnected
+   Connection-specific DNS Suffix  . :
+
+Wireless LAN adapter Local Area Connection* 2:
+
+   Media State . . . . . . . . . . . : Media disconnected
+   Connection-specific DNS Suffix  . :
+
+Wireless LAN adapter Wi-Fi:
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : fe80::7574:c907:5e23:fb87%18
+   IPv4 Address. . . . . . . . . . . : 192.168.1.167
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . . . : 192.168.1.1
