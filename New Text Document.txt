@@ -1,0 +1,133 @@
+ now next jump to phase 3
+
+Phase 3 — MinIO
+
+Unlike Postgres, MinIO has no installer wizard — it's a single .exe you run as a service. Do this in an Administrator PowerShell.
+
+1. Create folders for the binary and the data
+
+New-Item -ItemType Directory -Force -Path "C:\minio"
+New-Item -ItemType Directory -Force -Path "D:\miniodata"
+Why: same reasoning as Postgres — binary and data are kept separate, and the data folder lives on D:, not C:, so it mirrors the disk layout we'll use on the real server.
+
+2. Download the MinIO server binary
+
+Invoke-WebRequest -Uri "https://dl.min.io/server/minio/release/windows-amd64/minio.exe" -OutFile "C:\minio\minio.exe"
+
+3. Register it as a Windows service via NSSM
+
+winget install NSSM.NSSM
+Close/reopen PowerShell if nssm isn't recognized right after install, then:
+
+nssm install MinIO "C:\minio\minio.exe" "server D:\miniodata --console-address :9001"
+nssm set MinIO AppEnvironmentExtra MINIO_ROOT_USER=tcms_admin MINIO_ROOT_PASSWORD=Tcms@Storage2026
+nssm start MinIO
+
+Why AppEnvironmentExtra specifically: MinIO reads its root username/password from environment variables at process startup, not from a config file. Windows services don't inherit the environment variables from your PowerShell session — they run in their own isolated environment — so if you just did $env:MINIO_ROOT_USER=... in your terminal and started the service, it wouldn't see it. nssm set ... AppEnvironmentExtra injects those variables directly into the service's process environment, which is the reliable way to do it without a reboot.
+
+Use the same values that are already sitting in your .env (MINIO_ROOT_USER=tcms_admin, MINIO_ROOT_PASSWORD=Tcms@Storage2026) so the app and the service agree — you'll rotate both together later before this goes anywhere near pr
+
+4. Verify it's running
+
+Get-Service MinIO
+Should show Running. Then open http://localhost:9001 in a browser and log in with tcms_admin / Tcms@Storage2026.
+
+5. Create the bucket the app expects
+
+In the MinIO console: Buckets → Create Bucket → name it exactly tcms-documents (matches MINIO_BUCKET in .env).
+
+Impact on the project: every file-upload/download feature in the app (src/lib/storage.ts — content materials, certificates, qualification docs) talks to this bucket
+by name. If the bucket doesn't exist or the name doesn't match .envoSuchBucket" error the first time someone tries to attach a file —not at app startup, so it's easy to miss until you actually test that flow.
+
+---
+Once Get-Service MinIO shows Running and you can log into localhost(wiring .env fully and confirming Postgres from the last step isactually resolved) before building/running the app.
+
+✻ Cogitated for 24s
+
+❯ > nssm start MinIO
+  Can't open service!
+  OpenService(): The specified service does not exist as an installed service.
+
+That error means the nssm install MinIO ... step from before didn't actually register the service — nssm start is just telling you there's nothing by that name to
+start. Let's check what happened and redo it cleanly.
+
+1. Confirm nssm itself is working
+
+nssm --version
+If this errors ("not recognized"), the PowerShell session was opened before winget install NSSM.NSSM finished — close and reopen PowerShell (as Administrator) and
+try again.
+
+2. Confirm no service exists yet
+
+Get-Service | Where-Object { $_.Name -like "*Min*" }
+If this returns nothing, the install genuinely never happened — confirms we just need to redo it.
+
+3. Confirm the MinIO binary is actually there
+
+Test-Path "C:\minio\minio.exe"
+Should say True. If False, the download step from earlier didn't co
+Invoke-WebRequest -Uri "https://dl.min.io/server/minio/release/windows-amd64/minio.exe" -OutFile "C:\minio\minio.exe"
+
+4. Re-run the install — one likely culprit is the quoting
+
+When you wrap the whole arguments string in one set of quotes like "server D:\miniodata --console-address :9001", some nssm versions mishandle it and either
+silently no-op or pop up the interactive GUI installer in a separats there waiting for a click, doing nothing until you interact withit — easy to miss since it's a new window, not something in your terminal). Run it without wrapping the arguments together:
+
+nssm install MinIO "C:\minio\minio.exe" server D:\miniodata --console-address :9001
+
+Watch the output — it should print something like Service "MinIO" installed successfully! directly in the terminal, with no popup window appearing. If a GUI window
+does pop up instead, that means your nssm build defaulted to intera fields shown (Path: C:\minio\minio.exe, Arguments: serverD:\miniodata --console-address :9001) and click Install service in that window, don't close it without clicking install.
+
+5. Then set the env vars and start it
+
+nssm set MinIO AppEnvironmentExtra MINIO_ROOT_USER=tcms_admin MINIO_ROOT_PASSWORD=Tcms@Storage2026
+nssm start MinIO
+Get-Service MinIO
+
+Run through steps 1–3 first and tell me what they report — that'll tell us exactly which part broke before we redo the install.
+
+✻ Brewed for 34s
+
+❯ PS C:\WINDOWS\system32> Get-Service | Where-Object { $_.Name -like "*Min*" }
+
+  Status   Name               DisplayName
+  ------   ----               -----------
+  Running  PimIndexMainten... PimIndexMaintenanceSvc_7250a
+
+
+  PS C:\WINDOWS\system32>
+
+Confirmed — no MinIO service exists yet, only an unrelated Windows  check the two prerequisites, then install in one go.
+
+  Ran 1 shell command
+
+Let's verify the two prerequisites before reinstalling:
+
+nssm --version
+Test-Path "C:\minio\minio.exe"
+
+- If nssm --version errors with "not recognized" → close this PowerShell window, reopen a new one as Administrator, and try again (PATH only refreshes in new
+sessions after winget install).
+- If Test-Path returns False → the binary download didn't complete, re-run:
+Invoke-WebRequest -Uri "https://dl.min.io/server/minio/release/wind "C:\minio\minio.exe"
+
+Once both come back good (nssm prints a version number, Test-Path iout wrapping the arguments in one quoted block:
+
+nssm install MinIO "C:\minio\minio.exe" server D:\miniodata --conso
+
+Paste back what each of those three commands outputs — especially wprints a success message in the terminal or pops open a separate GUI window (that distinction tells us if it actually registered or is sitting there waiting for a click).
+
+✻ Worked for 16s
+
+❯ S C:\WINDOWS\system32> nssm --version
+  NSSM 2.24-101-g897c7ad 64-bit 2017-04-26
+  PS C:\WINDOWS\system32> Test-Path "C:\minio\minio.exe"
+  True
+  PS C:\WINDOWS\system32> nssm install MinIO "C:\minio\minio.exe" server D:\miniodata --console-address :9001                                                    Service "MinIO" installed successfully!
+  PS C:\WINDOWS\system32>                                                                                                                                        
+Both prerequisites were fine, and the install worked cleanly this time (no GUI popup — straight success message). Next:                                        
+nssm set MinIO AppEnvironmentExtra MINIO_ROOT_USER=tcms_admin MINIO_ROOT_PASSWORD=Tcms@Storage2026                                                             nssm start MinIO
+Get-Service MinIO                                                                                                                                              
+Get-Service MinIO should report Running. If it does, open http://localhost:9001 in a browser and log in with tcms_admin / Tcms@Storage2026 — that confirms the console is actually reachable, not just that the Windows service isce can show "Running" even if the process crashed immediately afterstart due to a bad argument — the browser login is the real proof).
+
+Paste back the Get-Service output and whether the console login works, and we'll move to creating the tcms-documents bucket.
