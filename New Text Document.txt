@@ -136,8 +136,18 @@ Paste back the Get-Service output and whether the console login works, and we'll
 
 
 
+
+
+
+
 nssm stop MinIO
 nssm remove MinIO confirm
 nssm install MinIO "C:\minio\minio.exe" server C:\miniodata --console-address ":9001"
 nssm start MinIO
 Get-Service MinIO
+
+
+
+
+
+C:\Users\Administrator\Desktop\tcms-qbd-main>
