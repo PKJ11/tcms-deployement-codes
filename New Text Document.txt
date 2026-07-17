@@ -131,3 +131,13 @@ Get-Service MinIO
 Get-Service MinIO should report Running. If it does, open http://localhost:9001 in a browser and log in with tcms_admin / Tcms@Storage2026 — that confirms the console is actually reachable, not just that the Windows service isce can show "Running" even if the process crashed immediately afterstart due to a bad argument — the browser login is the real proof).
 
 Paste back the Get-Service output and whether the console login works, and we'll move to creating the tcms-documents bucket.
+
+
+
+
+
+nssm stop MinIO
+nssm remove MinIO confirm
+nssm install MinIO "C:\minio\minio.exe" server C:\miniodata --console-address ":9001"
+nssm start MinIO
+Get-Service MinIO
